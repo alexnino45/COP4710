@@ -1,23 +1,648 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Readly - User</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PageTurner — My Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream:  #f5f0e8;
+      --ink:    #1a1208;
+      --brown:  #6b4226;
+      --gold:   #c8993a;
+      --rust:   #b85c38;
+      --sage:   #7a9e7e;
+      --light:  #ece6d9;
+      --shadow: rgba(26,18,8,0.10);
+    }
+
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 3rem;
+      background: rgba(245,240,232,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(107,66,38,0.12);
+    }
+    .nav-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem; font-style: italic;
+      color: var(--brown); text-decoration: none;
+    }
+    .nav-links { display: flex; gap: 1.5rem; align-items: center; }
+    .nav-links a {
+      text-decoration: none; color: var(--ink);
+      font-size: 0.875rem; font-weight: 400;
+      letter-spacing: 0.04em; text-transform: uppercase;
+      opacity: 0.6; transition: opacity 0.2s;
+    }
+    .nav-links a:hover { opacity: 1; }
+    .nav-user {
+      display: flex; align-items: center; gap: 0.75rem;
+      font-size: 0.875rem; font-weight: 500; opacity: 1 !important;
+    }
+    .nav-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--brown); color: var(--cream);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 500;
+      font-family: 'Playfair Display', serif;
+    }
+    .btn-logout {
+      background: transparent;
+      border: 1.5px solid rgba(107,66,38,0.3);
+      color: var(--brown); padding: 0.4rem 1rem;
+      border-radius: 2px; font-family: 'DM Sans', sans-serif;
+      font-size: 0.78rem; font-weight: 500;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      cursor: pointer; text-decoration: none;
+      transition: background 0.2s, color 0.2s;
+    }
+    .btn-logout:hover { background: var(--brown); color: var(--cream); }
+
+    /* ── PAGE LAYOUT ── */
+    .page-wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 100px 3rem 4rem;
+    }
+
+    /* ── PROFILE HEADER ── */
+    .profile-header {
+      display: flex; align-items: center; gap: 2rem;
+      margin-bottom: 3rem;
+      padding-bottom: 2.5rem;
+      border-bottom: 1px solid rgba(107,66,38,0.12);
+      animation: fadeUp 0.6s ease both;
+    }
+    .profile-avatar {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: var(--brown); color: var(--cream);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem; font-style: italic;
+      flex-shrink: 0;
+    }
+    .profile-info h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem; font-weight: 700;
+      letter-spacing: -0.02em; margin-bottom: 0.3rem;
+    }
+    .profile-meta {
+      font-size: 0.85rem; color: rgba(26,18,8,0.5);
+      display: flex; gap: 1.5rem; flex-wrap: wrap;
+    }
+    .profile-meta span { display: flex; align-items: center; gap: 0.4rem; }
+
+    /* ── STATS ROW ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.2rem;
+      margin-bottom: 3rem;
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+    .stat-card {
+      background: var(--light);
+      border-radius: 4px;
+      padding: 1.5rem;
+      border-left: 3px solid transparent;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-2px); }
+    .stat-card.gold  { border-left-color: var(--gold); }
+    .stat-card.sage  { border-left-color: var(--sage); }
+    .stat-card.rust  { border-left-color: var(--rust); }
+    .stat-card.brown { border-left-color: var(--brown); }
+    .stat-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.4rem; line-height: 1;
+      color: var(--ink); display: block; margin-bottom: 0.4rem;
+    }
+    .stat-label {
+      font-size: 0.75rem; letter-spacing: 0.1em;
+      text-transform: uppercase; color: rgba(26,18,8,0.5);
+    }
+
+    /* ── MAIN GRID ── */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 2rem;
+      animation: fadeUp 0.6s 0.2s ease both;
+    }
+
+    /* ── SECTION HEADERS ── */
+    .section-top {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.2rem;
+    }
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem; font-weight: 700;
+    }
+    .section-action {
+      font-size: 0.78rem; font-weight: 500;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--brown); text-decoration: none;
+      opacity: 0.8; transition: opacity 0.2s;
+    }
+    .section-action:hover { opacity: 1; }
+
+    /* ── FILTER TABS ── */
+    .filter-tabs {
+      display: flex; gap: 0.5rem; margin-bottom: 1.2rem; flex-wrap: wrap;
+    }
+    .filter-tab {
+      padding: 0.35rem 1rem;
+      border-radius: 999px;
+      font-size: 0.78rem; font-weight: 500;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      border: 1.5px solid rgba(107,66,38,0.2);
+      background: transparent; color: rgba(26,18,8,0.6);
+      cursor: pointer; transition: all 0.2s;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .filter-tab:hover { border-color: var(--brown); color: var(--brown); }
+    .filter-tab.active { background: var(--brown); color: var(--cream); border-color: var(--brown); }
+
+    /* ── BOOK LIST ── */
+    .book-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .book-item {
+      display: flex; align-items: center; gap: 1.2rem;
+      background: var(--light);
+      border-radius: 4px; padding: 1rem 1.2rem;
+      transition: transform 0.15s, box-shadow 0.2s;
+      border-left: 3px solid transparent;
+    }
+    .book-item:hover {
+      transform: translateX(3px);
+      box-shadow: 0 4px 20px var(--shadow);
+    }
+    .book-item.want    { border-left-color: var(--gold); }
+    .book-item.reading { border-left-color: var(--sage); }
+    .book-item.done    { border-left-color: var(--rust); }
+
+    .book-thumb {
+      width: 42px; height: 56px; flex-shrink: 0;
+      border-radius: 2px 5px 5px 2px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+    }
+    .book-thumb.want    { background: rgba(200,153,58,0.2); }
+    .book-thumb.reading { background: rgba(122,158,126,0.2); }
+    .book-thumb.done    { background: rgba(184,92,56,0.2); }
+
+    .book-info { flex: 1; min-width: 0; }
+    .book-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem; font-weight: 700;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-bottom: 0.2rem;
+    }
+    .book-author {
+      font-size: 0.8rem; color: rgba(26,18,8,0.5);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .book-genre {
+      font-size: 0.7rem; margin-top: 0.3rem;
+      color: rgba(26,18,8,0.4); letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .book-actions { display: flex; align-items: center; gap: 0.6rem; flex-shrink: 0; }
+    .status-badge {
+      padding: 0.25rem 0.7rem;
+      border-radius: 999px; font-size: 0.68rem;
+      font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .badge-want    { background: rgba(200,153,58,0.15);  color: #a07820; }
+    .badge-reading { background: rgba(122,158,126,0.15); color: #4d7a52; }
+    .badge-done    { background: rgba(184,92,56,0.15);   color: var(--rust); }
+
+    .icon-btn {
+      width: 30px; height: 30px; border-radius: 2px;
+      background: transparent; border: 1px solid rgba(107,66,38,0.15);
+      color: rgba(26,18,8,0.4); font-size: 0.85rem;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, color 0.15s;
+    }
+    .icon-btn:hover { background: var(--rust); color: white; border-color: var(--rust); }
+
+    .empty-state {
+      text-align: center; padding: 3rem 1rem;
+      color: rgba(26,18,8,0.35); font-size: 0.9rem;
+    }
+    .empty-state span { display: block; font-size: 2rem; margin-bottom: 0.75rem; }
+
+    /* ── SIDEBAR ── */
+    .sidebar { display: flex; flex-direction: column; gap: 1.5rem; }
+    .sidebar-card {
+      background: var(--light);
+      border-radius: 4px; padding: 1.5rem;
+    }
+    .sidebar-card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.05rem; font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    /* ── SEARCH ── */
+    .search-box {
+      display: flex; gap: 0.5rem;
+    }
+    .search-input {
+      flex: 1; padding: 0.7rem 0.9rem;
+      background: rgba(245,240,232,0.8);
+      border: 1px solid rgba(107,66,38,0.18);
+      border-radius: 2px; color: var(--ink);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.875rem; outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-input::placeholder { color: rgba(26,18,8,0.3); }
+    .search-input:focus { border-color: var(--brown); }
+    .search-btn {
+      padding: 0.7rem 1rem;
+      background: var(--brown); color: var(--cream);
+      border: none; border-radius: 2px;
+      font-size: 0.85rem; cursor: pointer;
+      transition: background 0.2s;
+    }
+    .search-btn:hover { background: var(--rust); }
+
+    /* ── GENRE BREAKDOWN ── */
+    .genre-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .genre-row { display: flex; flex-direction: column; gap: 0.3rem; }
+    .genre-meta { display: flex; justify-content: space-between; font-size: 0.8rem; }
+    .genre-name { font-weight: 500; }
+    .genre-count { color: rgba(26,18,8,0.45); }
+    .genre-bar-bg {
+      height: 5px; background: rgba(107,66,38,0.12);
+      border-radius: 999px; overflow: hidden;
+    }
+    .genre-bar {
+      height: 100%; background: var(--brown);
+      border-radius: 999px;
+      transition: width 1s ease;
+    }
+
+    /* ── PACE ALERT ── */
+    .pace-alert {
+      background: rgba(184,92,56,0.08);
+      border: 1px solid rgba(184,92,56,0.2);
+      border-radius: 4px; padding: 1rem;
+      font-size: 0.82rem; line-height: 1.6;
+      color: rgba(26,18,8,0.7);
+    }
+    .pace-alert strong { color: var(--rust); display: block; margin-bottom: 0.3rem; font-size: 0.85rem; }
+    .pace-book { margin-top: 0.6rem; font-weight: 500; font-size: 0.85rem; }
+    .pace-days { color: var(--rust); font-size: 0.75rem; }
+
+    /* ── ADD BOOK MODAL ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      background: rgba(26,18,8,0.5);
+      backdrop-filter: blur(4px);
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+    .modal {
+      background: var(--cream);
+      border-radius: 4px; padding: 2rem;
+      width: 100%; max-width: 440px;
+      animation: fadeUp 0.3s ease;
+    }
+    .modal-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem; font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+    .modal-field { margin-bottom: 1rem; }
+    .modal-field label {
+      display: block; font-size: 0.72rem; font-weight: 500;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: rgba(26,18,8,0.5); margin-bottom: 0.4rem;
+    }
+    .modal-field input, .modal-field select {
+      width: 100%; padding: 0.75rem 0.9rem;
+      background: var(--light);
+      border: 1px solid rgba(107,66,38,0.18);
+      border-radius: 2px; color: var(--ink);
+      font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+      outline: none; transition: border-color 0.2s;
+    }
+    .modal-field input:focus, .modal-field select:focus { border-color: var(--brown); }
+    .modal-actions { display: flex; gap: 0.75rem; margin-top: 1.5rem; }
+    .btn-modal-primary {
+      flex: 1; padding: 0.8rem;
+      background: var(--brown); color: var(--cream);
+      border: none; border-radius: 2px;
+      font-family: 'DM Sans', sans-serif; font-size: 0.875rem;
+      font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn-modal-primary:hover { background: var(--rust); }
+    .btn-modal-cancel {
+      padding: 0.8rem 1.4rem;
+      background: transparent; color: rgba(26,18,8,0.5);
+      border: 1px solid rgba(107,66,38,0.2); border-radius: 2px;
+      font-family: 'DM Sans', sans-serif; font-size: 0.875rem;
+      cursor: pointer; transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-modal-cancel:hover { border-color: var(--brown); color: var(--brown); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; } to { opacity: 1; }
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 960px) {
+      .main-grid { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      nav { padding: 1rem 1.5rem; }
+      .page-wrapper { padding: 90px 1.5rem 3rem; }
+    }
+    @media (max-width: 500px) {
+      .stats-row { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
 </head>
 <body>
-    <main class="container">
-        <h1>User Dashboard Placeholder</h1>
-        <p>This route is ready for the user catalog, stats page, and search page connection in Week 3.</p>
-        <ul>
-            <li>GET /users</li>
-            <li>POST /users</li>
-            <li>GET /books/search</li>
-            <li>GET /users/&lt;id&gt;/list</li>
-            <li>GET /users/&lt;id&gt;/stats</li>
-        </ul>
-        <a href="{{ url_for('pages.home') }}">Back Home</a>
-    </main>
+
+  <!-- NAV -->
+  <nav>
+    <a href="{{ url_for('pages.home') }}" class="nav-logo">PageTurner</a>
+    <div class="nav-links">
+      <a href="{{ url_for('pages.search') }}">Search Books</a>
+      <div class="nav-user">
+        <div class="nav-avatar">{{ user.name[0] }}</div>
+        <span>{{ user.name }}</span>
+      </div>
+      <a href="{{ url_for('pages.logout') }}" class="btn-logout">Log Out</a>
+    </div>
+  </nav>
+
+  <!-- PAGE -->
+  <div class="page-wrapper">
+
+    <!-- PROFILE HEADER -->
+    <div class="profile-header">
+      <div class="profile-avatar">{{ user.name[0] }}</div>
+      <div class="profile-info">
+        <h1>{{ user.name }}</h1>
+        <div class="profile-meta">
+          <span>✉ {{ user.email }}</span>
+          <span>📅 Member since {{ user.join_date }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATS ROW -->
+    <!-- GET /users/<id>/stats -->
+    <div class="stats-row">
+      <div class="stat-card gold">
+        <span class="stat-number">{{ stats.want_to_read }}</span>
+        <span class="stat-label">Want to Read</span>
+      </div>
+      <div class="stat-card sage">
+        <span class="stat-number">{{ stats.currently_reading }}</span>
+        <span class="stat-label">Currently Reading</span>
+      </div>
+      <div class="stat-card rust">
+        <span class="stat-number">{{ stats.finished }}</span>
+        <span class="stat-label">Finished</span>
+      </div>
+      <div class="stat-card brown">
+        <span class="stat-number">{{ stats.avg_days }}</span>
+        <span class="stat-label">Avg Days / Book</span>
+      </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="main-grid">
+
+      <!-- BOOK CATALOG -->
+      <!-- GET /users/<id>/list -->
+      <div class="catalog">
+        <div class="section-top">
+          <h2 class="section-title">My Reading List</h2>
+          <button class="section-action" onclick="openModal()">+ Add Book</button>
+        </div>
+
+        <!-- Filter tabs -->
+        <div class="filter-tabs">
+          <button class="filter-tab active" onclick="filterBooks('all', this)">All</button>
+          <button class="filter-tab" onclick="filterBooks('want', this)">Want to Read</button>
+          <button class="filter-tab" onclick="filterBooks('reading', this)">Reading</button>
+          <button class="filter-tab" onclick="filterBooks('done', this)">Finished</button>
+        </div>
+
+        <!-- Book list -->
+        <!-- Populated by Flask: GET /users/<id>/list -->
+        <div class="book-list" id="book-list">
+
+          {% for book in reading_list %}
+          <div class="book-item {{ book.status_class }}" data-status="{{ book.status_class }}">
+            <div class="book-thumb {{ book.status_class }}">📖</div>
+            <div class="book-info">
+              <div class="book-title">{{ book.title }}</div>
+              <div class="book-author">{{ book.author }}</div>
+              <div class="book-genre">{{ book.genre }}</div>
+            </div>
+            <div class="book-actions">
+              <span class="status-badge badge-{{ book.status_class }}">{{ book.status }}</span>
+              <!-- POST /users/<id>/list/<list_id>/status -->
+              <select class="icon-btn" style="width:auto; padding: 0.2rem 0.4rem; font-size:0.7rem;"
+                      onchange="updateStatus({{ book.list_id }}, this.value)"
+                      title="Change status">
+                <option value="want"    {% if book.status_class == 'want'    %}selected{% endif %}>Want</option>
+                <option value="reading" {% if book.status_class == 'reading' %}selected{% endif %}>Reading</option>
+                <option value="done"    {% if book.status_class == 'done'    %}selected{% endif %}>Done</option>
+              </select>
+              <!-- DELETE /users/<id>/list/<list_id> -->
+              <button class="icon-btn" onclick="removeBook({{ book.list_id }})" title="Remove">✕</button>
+            </div>
+          </div>
+          {% else %}
+          <div class="empty-state">
+            <span>📚</span>
+            Your list is empty — search for a book to get started!
+          </div>
+          {% endfor %}
+
+        </div>
+      </div>
+
+      <!-- SIDEBAR -->
+      <div class="sidebar">
+
+        <!-- Search -->
+        <!-- GET /books/search -->
+        <div class="sidebar-card">
+          <div class="sidebar-card-title">Search Books</div>
+          <div class="search-box">
+            <input class="search-input" id="search-input" type="text" placeholder="Title, author, genre…"/>
+            <button class="search-btn" onclick="searchBooks()">→</button>
+          </div>
+        </div>
+
+        <!-- Genre breakdown -->
+        <div class="sidebar-card">
+          <div class="sidebar-card-title">Books by Genre</div>
+          <div class="genre-list">
+            {% for genre in stats.genres %}
+            <div class="genre-row">
+              <div class="genre-meta">
+                <span class="genre-name">{{ genre.name }}</span>
+                <span class="genre-count">{{ genre.count }}</span>
+              </div>
+              <div class="genre-bar-bg">
+                <div class="genre-bar" style="width: {{ genre.pct }}%"></div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Pace alert -->
+        {% if pace_alerts %}
+        <div class="sidebar-card">
+          <div class="sidebar-card-title">⏱ Pace Tracker</div>
+          {% for alert in pace_alerts %}
+          <div class="pace-alert">
+            <strong>Flagged — stalled book</strong>
+            <span class="pace-book">{{ alert.title }}</span>
+            <span class="pace-days">{{ alert.days }} days in "Currently Reading"</span>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD BOOK MODAL -->
+  <!-- POST /users/<id>/list -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <div class="modal-title">Add a Book</div>
+      <div class="modal-field">
+        <label>Book Title</label>
+        <input type="text" id="modal-title" placeholder="Search by title…"/>
+      </div>
+      <div class="modal-field">
+        <label>Author</label>
+        <input type="text" id="modal-author" placeholder="Author name"/>
+      </div>
+      <div class="modal-field">
+        <label>Initial Status</label>
+        <select id="modal-status">
+          <option value="want">Want to Read</option>
+          <option value="reading">Currently Reading</option>
+          <option value="done">Finished</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-modal-primary" onclick="addBook()">Add to List</button>
+        <button class="btn-modal-cancel" onclick="closeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ── MODAL ──
+    function openModal()  { document.getElementById('modal').classList.add('open'); }
+    function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+    // Close modal on overlay click
+    document.getElementById('modal').addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
+
+    // ── FILTER TABS ──
+    function filterBooks(status, btn) {
+      document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      document.querySelectorAll('.book-item').forEach(item => {
+        if (status === 'all' || item.dataset.status === status) {
+          item.style.display = 'flex';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    }
+
+    // ── ADD BOOK ──
+    // TODO: wire to POST /users/<id>/list
+    function addBook() {
+      const title  = document.getElementById('modal-title').value.trim();
+      const author = document.getElementById('modal-author').value.trim();
+      const status = document.getElementById('modal-status').value;
+
+      if (!title) { alert('Please enter a title.'); return; }
+
+      // fetch('/users/{{ user.id }}/list', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ title, author, status })
+      // }).then(r => r.json()).then(() => location.reload());
+
+      closeModal();
+    }
+
+    // ── UPDATE STATUS ──
+    // TODO: wire to POST /users/<id>/list/<list_id>/status
+    function updateStatus(listId, newStatus) {
+      // fetch(`/users/{{ user.id }}/list/${listId}/status`, {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ status: newStatus })
+      // }).then(() => location.reload());
+      console.log('Update list item', listId, 'to', newStatus);
+    }
+
+    // ── REMOVE BOOK ──
+    // TODO: wire to DELETE /users/<id>/list/<list_id>
+    function removeBook(listId) {
+      if (!confirm('Remove this book from your list?')) return;
+      // fetch(`/users/{{ user.id }}/list/${listId}`, { method: 'DELETE' })
+      //   .then(() => location.reload());
+      console.log('Delete list item', listId);
+    }
+
+    // ── SEARCH ──
+    // TODO: wire to GET /books/search
+    function searchBooks() {
+      const q = document.getElementById('search-input').value.trim();
+      if (!q) return;
+      window.location.href = `/books/search?q=${encodeURIComponent(q)}`;
+    }
+
+    document.getElementById('search-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') searchBooks();
+    });
+  </script>
+
 </body>
 </html>
