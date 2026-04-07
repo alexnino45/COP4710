@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Readly - User</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <main class="container">
+        <h1>User Dashboard Placeholder</h1>
+        <p>This route is ready for the user catalog, stats page, and search page connection in Week 3.</p>
+        <ul>
+            <li>GET /users</li>
+            <li>POST /users</li>
+            <li>GET /books/search</li>
+            <li>GET /users/&lt;id&gt;/list</li>
+            <li>GET /users/&lt;id&gt;/stats</li>
+        </ul>
+        <a href="{{ url_for('pages.home') }}">Back Home</a>
+    </main>
+</body>
+</html>

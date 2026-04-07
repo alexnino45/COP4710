@@ -1,0 +1,40 @@
+COP4710_reorganized/
+├── app.py                     -> Main Flask entry point for the whole app
+├── config.py                  -> Shared configuration like DB path and debug settings
+├── requirements.txt           -> Python packages to install
+├── README.md                  -> Team setup and ownership guide
+├── FOLDER_GUIDE.txt           -> Quick map of what each folder/file is for
+│
+├── routes/                    -> Tomas and Alex backend work area
+│   ├── __init__.py            -> Registers all blueprints
+│   ├── pages.py               -> Home, login, and user page routes
+│   ├── users.py               -> User routes including create user
+│   ├── books.py               -> Book search and single book lookup
+│   ├── lists.py               -> Reading list CRUD routes
+│   └── stats.py               -> User statistics route
+│
+├── database/                  -> Christian database work area
+│   ├── __init__.py            -> Makes database a package
+│   ├── db.py                  -> Reusable SQLite connection helper
+│   ├── schema.sql             -> Database schema source of truth
+│   ├── setup_database.py      -> Builds and populates the database
+│   └── reading_list.db        -> SQLite database file
+│
+├── templates/                 -> Avery HTML pages to finish/design
+│   ├── index.html             -> Homepage placeholder already routed
+│   ├── login.html             -> Login/create user page placeholder
+│   └── user.html              -> User dashboard placeholder
+│
+├── static/                    -> Avery CSS and JS assets
+│   ├── style.css              -> Shared placeholder styling
+│   └── script.js              -> Create-user form submission logic
+│
+├── data/                      -> Source datasets used for DB population
+│   ├── Books_df.csv           -> Main Kaggle import file
+│   ├── Genre_df.csv           -> Supplemental dataset
+│   └── Sub_Genre_df.csv       -> Supplemental dataset
+│
+└── docs/                      -> Written project materials
+    ├── COP 4710 Term Project Part 3.docx
+    ├── COP 4710 Term Project.docx
+    └── Database Project Change Log.docx
