@@ -103,8 +103,8 @@ def load_sample_users(conn: sqlite3.Connection) -> None:
     for name, email in sample_users:
         join_date = random_date(start_range, end_range)
         cur.execute(
-            "INSERT OR IGNORE INTO User (Name, Email, JoinDate) VALUES (?, ?, ?)",
-            (name, email, join_date),
+            "INSERT OR IGNORE INTO User (Name, Email, Password, JoinDate) VALUES (?, ?, ?, ?)",
+            (name, email, "password123", join_date),
         )
         user_row = cur.execute("SELECT UserID FROM User WHERE Email = ?", (email,)).fetchone()
         if user_row:

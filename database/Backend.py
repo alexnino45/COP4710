@@ -4,11 +4,12 @@ Run with: python app.py
 Then open http://127.0.0.1:5000 in your browser.
 """
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, session 
 import sqlite3
 from datetime import date
 
 app = Flask(__name__)
+app.secret_key = "cop4710-dev-key"
 DB_PATH = "reading_list.db"
 
 
@@ -109,6 +110,78 @@ def get_user(user_id):
 
     return jsonify(dict(user))
 
+
+
+# LOGIN — Verify email and password
+# POST /login
+# Body: { "email": "christian@example.com", "password": "password123" }
+@app.route("/login", methods=["POST"])
+def login():
+    data     = request.get_json()
+    email    = data.get("email")
+    password = data.get("password")
+
+    if not email or not password:
+        return jsonify({"error": "Email and password are required"}), 400
+
+    conn = get_db()
+    user = conn.execute(
+        "SELECT * FROM User WHERE Email = ? AND Password = ?",
+        (email, password)
+    ).fetchone()
+    conn.close()
+
+    if not user:
+        return jsonify({"error": "Invalid email or password"}), 401
+
+    return jsonify({
+        "message":  "Login successful",
+        "UserID":   user["UserID"],
+        "Name":     user["Name"],
+        "Email":    user["Email"],
+        "JoinDate": user["JoinDate"]
+    }), 200
+
+
+
+# REGISTER — Create a new user account
+# POST /register
+# Body: { "name": "John Doe", "email": "john@example.com", "password": "mypassword" }
+@app.route("/register", methods=["POST"])
+def register():
+    data     = request.get_json()
+    name     = data.get("name")
+    email    = data.get("email")
+    password = data.get("password")
+
+    if not name or not email or not password:
+        return jsonify({"error": "Name, email, and password are required"}), 400
+
+    join_date = date.today().strftime("%Y-%m-%d")
+
+    conn = get_db()
+    try:
+        cur = conn.execute(
+            "INSERT INTO User (Name, Email, Password, JoinDate) VALUES (?,?,?,?)",
+            (name, email, password, join_date)
+        )
+        user_id = cur.lastrowid
+
+        # Automatically create a list for the new user
+        conn.execute(
+            "INSERT INTO List (UserID) VALUES (?)",
+            (user_id,)
+        )
+        conn.commit()
+    except sqlite3.IntegrityError:
+        return jsonify({"error": "Email already exists"}), 400
+    finally:
+        conn.close()
+
+    return jsonify({
+        "message": "Account created successfully",
+        "UserID":  user_id
+    }), 201
 
 # Create a new user
 # POST /users

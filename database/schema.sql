@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS User (
     UserID   INTEGER PRIMARY KEY AUTOINCREMENT,
     Name     TEXT    NOT NULL,
     Email    TEXT    NOT NULL UNIQUE,
+    Password TEXT    NOT NULL,
     JoinDate TEXT    NOT NULL
 );
 
