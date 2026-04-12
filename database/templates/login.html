@@ -375,12 +375,25 @@
         return;
       }
 
-      // TODO: wire to Flask app.route('/login') via fetch or form submit
-      // Example: 
-      // fetch('/login', { method:'POST', body: new FormData(form) })
-      //   .then(r => r.json())
-      //   .then(data => { if (data.success) window.location = '/catalog'; });
-      document.getElementById('login-success').classList.add('visible');
+      fetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email:    email.value,
+          password: pass.value
+        })
+})
+.then(r => r.json())
+.then(data => {
+    if (data.error) {
+        const err = document.getElementById('login-error');
+        err.textContent = data.error;
+        err.classList.add('visible');
+    } else {
+        document.getElementById('login-success').classList.add('visible');
+        setTimeout(() => window.location.href = '/dashboard', 1000);
+    }
+});
     }
 
     function handleRegister() {
@@ -406,8 +419,27 @@
         return;
       }
 
-      // TODO: wire to Flask app.route('/register') via fetch or form submit
-      document.getElementById('register-success').classList.add('visible');
+      fetch('/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+        first_name: first.value,
+        last_name:  last.value,
+        email:      email.value,
+        password:   pass.value
+    })
+})
+.then(r => r.json())
+.then(data => {
+    if (data.error) {
+        const err = document.getElementById('register-error');
+        err.textContent = data.error;
+        err.classList.add('visible');
+    } else {
+        document.getElementById('register-success').classList.add('visible');
+        setTimeout(() => switchTab('login', document.querySelector('.tab-btn')), 1500);
+    }
+});
     }
   </script>
 </body>

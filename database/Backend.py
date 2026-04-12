@@ -4,7 +4,7 @@ Run with: python app.py
 Then open http://127.0.0.1:5000 in your browser.
 """
 
-from flask import Flask, request, jsonify, session 
+from flask import Flask, request, jsonify, session, render_template
 import sqlite3
 from datetime import date
 
@@ -28,6 +28,9 @@ def get_db():
 def home():
     return "Reading List App is running!"
 
+@app.route("/login-page")
+def login_page():
+    return render_template("login.html")
 
 # ══════════════════════════════════════════════════════════════════════════════
 # BOOK ROUTES
@@ -150,7 +153,9 @@ def login():
 @app.route("/register", methods=["POST"])
 def register():
     data     = request.get_json()
-    name     = data.get("name")
+    first_name = data.get("first_name")
+    last_name  = data.get("last_name")
+    name     = f"{first_name} {last_name}"
     email    = data.get("email")
     password = data.get("password")
 
@@ -200,8 +205,8 @@ def create_user():
     conn = get_db()
     try:
         cur = conn.execute(
-            "INSERT INTO User (Name, Email, JoinDate) VALUES (?,?,?)",
-            (name, email, join_date)
+            "INSERT INTO User (Name, Email, Password, JoinDate) VALUES (?,?,?,?)",
+            (name, email, "password123", join_date)
         )
         user_id = cur.lastrowid
 
