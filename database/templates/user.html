@@ -390,14 +390,14 @@
 
   <!-- NAV -->
   <nav>
-    <a href="{{ url_for('pages.home') }}" class="nav-logo">PageTurner</a>
+    <a href="/dashboard" class="nav-logo">PageTurner</a>
     <div class="nav-links">
-      <a href="{{ url_for('pages.search') }}">Search Books</a>
+      <a href="/search">Search Books</a>
       <div class="nav-user">
-        <div class="nav-avatar">{{ user.name[0] }}</div>
-        <span>{{ user.name }}</span>
+        <div class="nav-avatar">{{ user.Name[0] }}</div>
+        <span>{{ user.Name }}</span>
       </div>
-      <a href="{{ url_for('pages.logout') }}" class="btn-logout">Log Out</a>
+      <a href="/logout" class="btn-logout">Log Out</a>
     </div>
   </nav>
 
@@ -406,11 +406,11 @@
 
     <!-- PROFILE HEADER -->
     <div class="profile-header">
-      <div class="profile-avatar">{{ user.name[0] }}</div>
+      <div class="profile-avatar">{{ user.Name[0] }}</div>
       <div class="profile-info">
-        <h1>{{ user.name }}</h1>
+        <h1>{{ user.Name }}</h1>
         <div class="profile-meta">
-          <span>✉ {{ user.email }}</span>
+          <span>✉ {{ user.Email }}</span>
           <span>📅 Member since {{ user.join_date }}</span>
         </div>
       </div>

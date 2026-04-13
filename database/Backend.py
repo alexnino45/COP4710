@@ -4,7 +4,7 @@ Run with: python app.py
 Then open http://127.0.0.1:5000 in your browser.
 """
 
-from flask import Flask, request, jsonify, session, render_template
+from flask import Flask, request, jsonify, session, render_template, redirect
 import sqlite3
 from datetime import date
 
@@ -31,6 +31,134 @@ def home():
 @app.route("/login-page")
 def login_page():
     return render_template("login.html")
+
+@app.route("/dashboard")
+def dashboard():
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect("/login-page")
+
+    conn = get_db()
+
+    user = conn.execute(
+        "SELECT * FROM User WHERE UserID = ?", (user_id,)
+    ).fetchone()
+
+    reading_list = conn.execute("""
+        SELECT b.BookID, b.Title, b.Author, b.Genre,
+               r.Status, r.DateAdded, r.StartDate, r.EndDate
+        FROM   List l
+        JOIN   References_ r ON l.ListID = r.ListID
+        JOIN   Book b        ON r.BookID = b.BookID
+        WHERE  l.UserID = ?
+        ORDER  BY r.DateAdded DESC
+    """, (user_id,)).fetchall()
+
+    status_counts = conn.execute("""
+        SELECT r.Status, COUNT(*) as count
+        FROM   List l
+        JOIN   References_ r ON l.ListID = r.ListID
+        WHERE  l.UserID = ?
+        GROUP  BY r.Status
+    """, (user_id,)).fetchall()
+
+    genre_counts = conn.execute("""
+        SELECT b.Genre, COUNT(*) as count
+        FROM   List l
+        JOIN   References_ r ON l.ListID  = r.ListID
+        JOIN   Book b        ON r.BookID  = b.BookID
+        WHERE  l.UserID = ? AND r.Status = 'finished'
+        GROUP  BY b.Genre
+        ORDER  BY count DESC
+    """, (user_id,)).fetchall()
+
+    avg_days = conn.execute("""
+        SELECT ROUND(AVG(
+            JULIANDAY(r.EndDate) - JULIANDAY(r.StartDate)
+        ), 1) as avg_days
+        FROM   List l
+        JOIN   References_ r ON l.ListID = r.ListID
+        WHERE  l.UserID = ?
+        AND    r.Status = 'finished'
+        AND    r.StartDate IS NOT NULL
+        AND    r.EndDate   IS NOT NULL
+    """, (user_id,)).fetchone()
+
+    slow_reads = conn.execute("""
+        SELECT b.Title, b.Author,
+               ROUND(JULIANDAY('now') - JULIANDAY(r.StartDate)) as days_reading
+        FROM   List l
+        JOIN   References_ r ON l.ListID = r.ListID
+        JOIN   Book b        ON r.BookID = b.BookID
+        WHERE  l.UserID = ?
+        AND    r.Status = 'currently reading'
+        AND    r.StartDate IS NOT NULL
+        AND    JULIANDAY('now') - JULIANDAY(r.StartDate) > 30
+        ORDER  BY days_reading DESC
+    """, (user_id,)).fetchall()
+
+    conn.close()
+
+    status_dict = {row["Status"]: row["count"] for row in status_counts}
+    total_finished = max(status_dict.get("finished", 1), 1)
+    genres = [
+        {
+            "name":  row["Genre"],
+            "count": row["count"],
+            "pct":   round(row["count"] / total_finished * 100)
+        }
+        for row in genre_counts
+    ]
+
+    stats = {
+        "want_to_read":      status_dict.get("want to read", 0),
+        "currently_reading": status_dict.get("currently reading", 0),
+        "finished":          status_dict.get("finished", 0),
+        "avg_days":          dict(avg_days)["avg_days"] if avg_days and dict(avg_days)["avg_days"] else 0,
+        "genres":            genres
+    }
+
+    status_class_map = {
+        "want to read":      "want",
+        "currently reading": "reading",
+        "finished":          "done"
+    }
+    books = [
+        {
+            "BookID":       row["BookID"],
+            "title":        row["Title"],
+            "author":       row["Author"],
+            "genre":        row["Genre"],
+            "status":       row["Status"],
+            "status_class": status_class_map.get(row["Status"], "want"),
+            "date_added":   row["DateAdded"],
+            "start_date":   row["StartDate"],
+            "end_date":     row["EndDate"]
+        }
+        for row in reading_list
+    ]
+
+    pace_alerts = [
+        {
+            "title": row["Title"],
+            "days":  int(row["days_reading"])
+        }
+        for row in slow_reads
+    ]
+
+    return render_template(
+        "user.html",
+        user=dict(user),
+        reading_list=books,
+        stats=stats,
+        pace_alerts=pace_alerts
+    )
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect("/login-page")
 
 # ══════════════════════════════════════════════════════════════════════════════
 # BOOK ROUTES
@@ -137,6 +265,8 @@ def login():
     if not user:
         return jsonify({"error": "Invalid email or password"}), 401
 
+    session["user_id"] = user["UserID"]
+    session["user_name"] = user["Name"]
     return jsonify({
         "message":  "Login successful",
         "UserID":   user["UserID"],
