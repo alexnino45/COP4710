@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PageTurner — My Profile</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream:  #f5f0e8;
+      --ink:    #1a1208;
+      --brown:  #6b4226;
+      --gold:   #c8993a;
+      --rust:   #b85c38;
+      --sage:   #7a9e7e;
+      --light:  #ece6d9;
+      --shadow: rgba(26,18,8,0.10);
+    }
+
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 3rem;
+      background: rgba(245,240,232,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(107,66,38,0.12);
+    }
+    .nav-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem; font-style: italic;
+      color: var(--brown); text-decoration: none;
+    }
+    .nav-links { display: flex; gap: 1.5rem; align-items: center; }
+    .nav-links a {
+      text-decoration: none; color: var(--ink);
+      font-size: 0.875rem; font-weight: 400;
+      letter-spacing: 0.04em; text-transform: uppercase;
+      opacity: 0.6; transition: opacity 0.2s;
+    }
+    .nav-links a:hover { opacity: 1; }
+    .nav-user {
+      display: flex; align-items: center; gap: 0.75rem;
+      font-size: 0.875rem; font-weight: 500; opacity: 1 !important;
+    }
+    .nav-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--brown); color: var(--cream);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 500;
+      font-family: 'Playfair Display', serif;
+    }
+    .btn-logout {
+      background: transparent;
+      border: 1.5px solid rgba(107,66,38,0.3);
+      color: var(--brown); padding: 0.4rem 1rem;
+      border-radius: 2px; font-family: 'DM Sans', sans-serif;
+      font-size: 0.78rem; font-weight: 500;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      cursor: pointer; text-decoration: none;
+      transition: background 0.2s, color 0.2s;
+    }
+    .btn-logout:hover { background: var(--brown); color: var(--cream); }
+
+    /* ── PAGE LAYOUT ── */
+    .page-wrapper {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 100px 3rem 4rem;
+    }
+
+    /* ── PAGE TITLE ── */
+    .page-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem; font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(107,66,38,0.12);
+      animation: fadeUp 0.6s ease both;
+    }
+
+    /* ── CARDS ── */
+    .profile-card {
+      background: var(--light);
+      border-radius: 4px;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      animation: fadeUp 0.6s ease both;
+    }
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem; font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ── INFO ROWS ── */
+    .info-row {
+      display: flex; flex-direction: column;
+      gap: 0.3rem; margin-bottom: 1.2rem;
+    }
+    .info-row:last-child { margin-bottom: 0; }
+    .info-label {
+      font-size: 0.72rem; font-weight: 500;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: rgba(26,18,8,0.45);
+    }
+    .info-value {
+      font-size: 1rem; font-weight: 400;
+      color: var(--ink);
+    }
+
+    /* ── FORM FIELDS ── */
+    .field { margin-bottom: 1.2rem; }
+    .field label {
+      display: block;
+      font-size: 0.72rem; font-weight: 500;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: rgba(26,18,8,0.45);
+      margin-bottom: 0.5rem;
+    }
+    .field input {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      background: rgba(245,240,232,0.8);
+      border: 1px solid rgba(107,66,38,0.18);
+      border-radius: 2px;
+      color: var(--ink);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 300;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .field input:focus { border-color: var(--brown); }
+
+    /* ── BUTTONS ── */
+    .btn-primary {
+      padding: 0.85rem 1.5rem;
+      background: var(--brown); color: var(--cream);
+      border: none; border-radius: 2px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.875rem; font-weight: 500;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn-primary:hover { background: var(--rust); }
+
+    .btn-danger {
+      padding: 0.85rem 1.5rem;
+      background: transparent; color: var(--rust);
+      border: 1.5px solid rgba(184,92,56,0.4);
+      border-radius: 2px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.875rem; font-weight: 500;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      cursor: pointer; transition: background 0.2s, color 0.2s;
+    }
+    .btn-danger:hover { background: var(--rust); color: var(--cream); }
+
+    /* ── SUCCESS / ERROR MESSAGES ── */
+    .msg {
+      display: none;
+      padding: 0.75rem 1rem;
+      border-radius: 2px;
+      font-size: 0.82rem;
+      margin-bottom: 1rem;
+    }
+    .msg.visible { display: block; }
+    .msg-success {
+      background: rgba(122,158,126,0.15);
+      border: 1px solid rgba(122,158,126,0.3);
+      color: #4d7a52;
+    }
+    .msg-error {
+      background: rgba(192,57,43,0.15);
+      border: 1px solid rgba(192,57,43,0.3);
+      color: #c0392b;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 700px) {
+      nav { padding: 1rem 1.5rem; }
+      .page-wrapper { padding: 90px 1.5rem 3rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="/dashboard" class="nav-logo">PageTurner</a>
+    <div class="nav-links">
+      <a href="/dashboard">Reading List</a>
+      <a href="/stats">Stats</a>
+      <div class="nav-user">
+        <div class="nav-avatar">{{ user.Name[0] }}</div>
+        <span>{{ user.Name }}</span>
+      </div>
+      <a href="/logout" class="btn-logout">Log Out</a>
+    </div>
+  </nav>
+
+  <div class="page-wrapper">
+    <h1 class="page-title">My Profile</h1>
+
+    <!-- ACCOUNT INFO -->
+    <div class="profile-card">
+      <div class="card-title">Account Information</div>
+      <div class="info-row">
+        <span class="info-label">Full Name</span>
+        <span class="info-value">{{ user.Name }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Email Address</span>
+        <span class="info-value">{{ user.Email }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Member Since</span>
+        <span class="info-value">{{ user.JoinDate }}</span>
+      </div>
+    </div>
+
+    <!-- CHANGE PASSWORD -->
+    <div class="profile-card">
+      <div class="card-title">Change Password</div>
+      <div class="msg msg-success" id="pw-success">Password updated successfully.</div>
+      <div class="msg msg-error" id="pw-error">Passwords do not match.</div>
+      <div class="field">
+        <label>Current Password</label>
+        <input type="password" id="current-password" placeholder="••••••••"/>
+      </div>
+      <div class="field">
+        <label>New Password</label>
+        <input type="password" id="new-password" placeholder="••••••••"/>
+      </div>
+      <div class="field">
+        <label>Confirm New Password</label>
+        <input type="password" id="confirm-password" placeholder="••••••••"/>
+      </div>
+      <button class="btn-primary" onclick="changePassword()">Update Password</button>
+    </div>
+
+    <!-- DELETE ACCOUNT -->
+    <div class="profile-card">
+      <div class="card-title">Delete Account</div>
+      <p style="font-size:0.875rem; color:rgba(26,18,8,0.55); margin-bottom:1.5rem; line-height:1.6;">
+        Permanently delete your account and all reading list data. This action cannot be undone.
+      </p>
+      <button class="btn-danger" onclick="deleteAccount()">Delete Account</button>
+    </div>
+
+  </div>
+
+  <script>
+    const USER_ID = {{ user.UserID }};
+
+    function changePassword() {
+      const current = document.getElementById('current-password').value;
+      const newPass  = document.getElementById('new-password').value;
+      const confirm  = document.getElementById('confirm-password').value;
+
+      document.getElementById('pw-success').classList.remove('visible');
+      document.getElementById('pw-error').classList.remove('visible');
+
+      if (!current || !newPass || !confirm) {
+        const err = document.getElementById('pw-error');
+        err.textContent = 'Please fill in all fields.';
+        err.classList.add('visible');
+        return;
+      }
+
+      if (newPass !== confirm) {
+        const err = document.getElementById('pw-error');
+        err.textContent = 'New passwords do not match.';
+        err.classList.add('visible');
+        return;
+      }
+
+      fetch(`/users/${USER_ID}/password`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          current_password: current,
+          new_password:     newPass
+        })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) {
+          const err = document.getElementById('pw-error');
+          err.textContent = data.error;
+          err.classList.add('visible');
+        } else {
+          document.getElementById('pw-success').classList.add('visible');
+          document.getElementById('current-password').value = '';
+          document.getElementById('new-password').value = '';
+          document.getElementById('confirm-password').value = '';
+        }
+      });
+    }
+
+    function deleteAccount() {
+      if (!confirm('Are you sure you want to delete your account? This cannot be undone.')) return;
+      fetch(`/users/${USER_ID}`, { method: 'DELETE' })
+        .then(r => r.json())
+        .then(data => {
+          if (data.error) {
+            alert(data.error);
+          } else {
+            window.location.href = '/login-page';
+          }
+        });
+    }
+  </script>
+
+</body>
+</html>
