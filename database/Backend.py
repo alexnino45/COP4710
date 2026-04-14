@@ -67,20 +67,19 @@ def dashboard():
         FROM   List l
         JOIN   References_ r ON l.ListID  = r.ListID
         JOIN   Book b        ON r.BookID  = b.BookID
-        WHERE  l.UserID = ? AND r.Status = 'finished'
+        WHERE  l.UserID = ?
         GROUP  BY b.Genre
         ORDER  BY count DESC
     """, (user_id,)).fetchall()
 
     avg_days = conn.execute("""
         SELECT ROUND(AVG(
-            JULIANDAY(r.EndDate) - JULIANDAY(r.StartDate)
+            JULIANDAY(r.EndDate) - JULIANDAY(r.DateAdded)
         ), 1) as avg_days
         FROM   List l
         JOIN   References_ r ON l.ListID = r.ListID
         WHERE  l.UserID = ?
         AND    r.Status = 'finished'
-        AND    r.StartDate IS NOT NULL
         AND    r.EndDate   IS NOT NULL
     """, (user_id,)).fetchone()
 
@@ -173,21 +172,27 @@ def search_books():
     title  = request.args.get("title",  "")
     author = request.args.get("author", "")
     genre  = request.args.get("genre",  "")
+    q      = request.args.get("q",      "")
 
-    query  = "SELECT * FROM Book WHERE 1=1"
     params = []
 
-    if title:
-        query += " AND Title LIKE ?"
-        params.append(f"%{title}%")
-    if author:
-        query += " AND Author LIKE ?"
-        params.append(f"%{author}%")
-    if genre:
-        query += " AND Genre LIKE ?"
-        params.append(f"%{genre}%")
-
-    query += " LIMIT 50"
+    if q:
+        query = """SELECT * FROM Book WHERE 
+                   Title LIKE ? OR Author LIKE ? OR Genre LIKE ?
+                   LIMIT 50"""
+        params = [f"%{q}%", f"%{q}%", f"%{q}%"]
+    else:
+        query  = "SELECT * FROM Book WHERE 1=1"
+        if title:
+            query += " AND Title LIKE ?"
+            params.append(f"%{title}%")
+        if author:
+            query += " AND Author LIKE ?"
+            params.append(f"%{author}%")
+        if genre:
+            query += " AND Genre LIKE ?"
+            params.append(f"%{genre}%")
+        query += " LIMIT 50"
 
     conn = get_db()
     books = conn.execute(query, params).fetchall()

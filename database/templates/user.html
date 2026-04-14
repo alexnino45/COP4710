@@ -392,7 +392,6 @@
   <nav>
     <a href="/dashboard" class="nav-logo">PageTurner</a>
     <div class="nav-links">
-      <a href="/search">Search Books</a>
       <div class="nav-user">
         <div class="nav-avatar">{{ user.Name[0] }}</div>
         <span>{{ user.Name }}</span>
@@ -411,7 +410,7 @@
         <h1>{{ user.Name }}</h1>
         <div class="profile-meta">
           <span>✉ {{ user.Email }}</span>
-          <span>📅 Member since {{ user.join_date }}</span>
+          <span>📅 Member since {{ user.JoinDate }}</span>
         </div>
       </div>
     </div>
@@ -445,7 +444,7 @@
       <div class="catalog">
         <div class="section-top">
           <h2 class="section-title">My Reading List</h2>
-          <button class="section-action" onclick="openModal()">+ Add Book</button>
+          <!--<button class="section-action" onclick="openModal()">+ Add Book</button>>-->
         </div>
 
         <!-- Filter tabs -->
@@ -472,14 +471,15 @@
               <span class="status-badge badge-{{ book.status_class }}">{{ book.status }}</span>
               <!-- POST /users/<id>/list/<list_id>/status -->
               <select class="icon-btn" style="width:auto; padding: 0.2rem 0.4rem; font-size:0.7rem;"
-                      onchange="updateStatus({{ book.list_id }}, this.value)"
+                      data-book-id="{{ book.BookID }}"
+                      onchange="updateStatus(this.dataset.bookId, this.value)"
                       title="Change status">
                 <option value="want"    {% if book.status_class == 'want'    %}selected{% endif %}>Want</option>
                 <option value="reading" {% if book.status_class == 'reading' %}selected{% endif %}>Reading</option>
                 <option value="done"    {% if book.status_class == 'done'    %}selected{% endif %}>Done</option>
               </select>
               <!-- DELETE /users/<id>/list/<list_id> -->
-              <button class="icon-btn" onclick="removeBook({{ book.list_id }})" title="Remove">✕</button>
+              <button class="icon-btn" onclick="removeBook('{{ book.BookID }}')" title="Remove">✕</button>
             </div>
           </div>
           {% else %}
@@ -503,6 +503,7 @@
             <input class="search-input" id="search-input" type="text" placeholder="Title, author, genre…"/>
             <button class="search-btn" onclick="searchBooks()">→</button>
           </div>
+          <div id="search-results" style="margin-top:1rem; display:none; max-height:300px; overflow-y:auto;"></div>
         </div>
 
         <!-- Genre breakdown -->
@@ -543,7 +544,7 @@
 
   <!-- ADD BOOK MODAL -->
   <!-- POST /users/<id>/list -->
-  <div class="modal-overlay" id="modal">
+  <!--<div class="modal-overlay" id="modal">
     <div class="modal">
       <div class="modal-title">Add a Book</div>
       <div class="modal-field">
@@ -568,16 +569,18 @@
       </div>
     </div>
   </div>
+-->
 
   <script>
+    const USER_ID = {{ user.UserID }};
     // ── MODAL ──
-    function openModal()  { document.getElementById('modal').classList.add('open'); }
-    function closeModal() { document.getElementById('modal').classList.remove('open'); }
+    //function openModal()  { document.getElementById('modal').classList.add('open'); }
+    //function closeModal() { document.getElementById('modal').classList.remove('open'); }
 
     // Close modal on overlay click
-    document.getElementById('modal').addEventListener('click', function(e) {
-      if (e.target === this) closeModal();
-    });
+    //document.getElementById('modal').addEventListener('click', function(e) {
+      //if (e.target === this) closeModal();
+    //});
 
     // ── FILTER TABS ──
     function filterBooks(status, btn) {
@@ -596,11 +599,11 @@
     // ── ADD BOOK ──
     // TODO: wire to POST /users/<id>/list
     function addBook() {
-      const title  = document.getElementById('modal-title').value.trim();
-      const author = document.getElementById('modal-author').value.trim();
-      const status = document.getElementById('modal-status').value;
+        //const title  = document.getElementById('modal-title').value.trim();
+        //const author = document.getElementById('modal-author').value.trim();
+        //const status = document.getElementById('modal-status').value;
 
-      if (!title) { alert('Please enter a title.'); return; }
+        //if (!title) { alert('Please enter a title.'); return; }
 
       // fetch('/users/{{ user.id }}/list', {
       //   method: 'POST',
@@ -608,27 +611,71 @@
       //   body: JSON.stringify({ title, author, status })
       // }).then(r => r.json()).then(() => location.reload());
 
-      closeModal();
+        //closeModal();
+
+    const title = document.getElementById('modal-title').value.trim();
+    if (!title) { alert('Please enter a title.'); return; }
+
+    fetch(`/books/search?q=${encodeURIComponent(title)}`)
+        .then(r => r.json())
+        .then(books => {
+            if (books.length === 0) {
+                alert('No book found with that title.');
+                return;
+            }
+            const book = books[0];
+            return fetch(`/users/${USER_ID}/list`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ book_id: book.BookID })
+            });
+        })
+        .then(r => r && r.json())
+        .then(data => {
+            if (data && data.error) {
+                alert(data.error);
+            } else if (data) {
+                closeModal();
+                location.reload();
+            }
+        });
     }
 
     // ── UPDATE STATUS ──
     // TODO: wire to POST /users/<id>/list/<list_id>/status
-    function updateStatus(listId, newStatus) {
+    function updateStatus(bookId, newStatus) {
       // fetch(`/users/{{ user.id }}/list/${listId}/status`, {
       //   method: 'POST',
       //   headers: { 'Content-Type': 'application/json' },
       //   body: JSON.stringify({ status: newStatus })
       // }).then(() => location.reload());
-      console.log('Update list item', listId, 'to', newStatus);
+        //console.log('Update list item', listId, 'to', newStatus);
+
+      const id = parseInt(bookId);
+      const statusMap = {
+        'want':    'want to read',
+        'reading': 'currently reading',
+        'done':    'finished'
+      };
+      fetch(`/users/${USER_ID}/list/${bookId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: statusMap[newStatus] })
+      }).then(() => location.reload());
     }
 
     // ── REMOVE BOOK ──
     // TODO: wire to DELETE /users/<id>/list/<list_id>
-    function removeBook(listId) {
-      if (!confirm('Remove this book from your list?')) return;
+    function removeBook(bookId) {
+        //if (!confirm('Remove this book from your list?')) return;
       // fetch(`/users/{{ user.id }}/list/${listId}`, { method: 'DELETE' })
       //   .then(() => location.reload());
-      console.log('Delete list item', listId);
+        //console.log('Delete list item', listId);
+
+      const id = parseInt(bookId);
+      if (!confirm('Remove this book from your list?')) return;
+      fetch(`/users/${USER_ID}/list/${id}`, { method: 'DELETE' })
+        .then(() => location.reload());
     }
 
     // ── SEARCH ──
@@ -636,7 +683,47 @@
     function searchBooks() {
       const q = document.getElementById('search-input').value.trim();
       if (!q) return;
-      window.location.href = `/books/search?q=${encodeURIComponent(q)}`;
+        //window.location.href = `/books/search?q=${encodeURIComponent(q)}`;
+      fetch(`/books/search?q=${encodeURIComponent(q)}`)
+        .then(r => r.json())
+        .then(books => {
+          const resultsDiv = document.getElementById('search-results');
+          if (books.length === 0) {
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = '<p style="font-size:0.85rem; color:rgba(26,18,8,0.5); padding:0.5rem 0;">No books found.</p>';
+            return;
+          }
+          resultsDiv.style.display = 'block';
+          resultsDiv.innerHTML = books.map(book => `
+            <div style="padding:0.6rem 0; border-bottom:1px solid rgba(107,66,38,0.1);">
+              <div style="font-size:0.85rem; font-weight:500;">${book.Title}</div>
+              <div style="font-size:0.75rem; color:rgba(26,18,8,0.5); margin-bottom:0.3rem;">${book.Author || 'Unknown'} — ${book.Genre || 'Unknown'}</div>
+              <button onclick="selectBook(${book.BookID})"
+                style="padding:0.25rem 0.7rem; background:var(--brown); color:var(--cream);
+                       border:none; border-radius:2px; font-size:0.72rem; cursor:pointer;">
+                + Add to List
+              </button>
+            </div>
+          `).join('');
+        });
+    }
+
+    function selectBook(bookId) {
+      fetch(`/users/${USER_ID}/list`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ book_id: bookId })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) {
+          alert(data.error);
+        } else {
+          document.getElementById('search-results').style.display = 'none';
+          document.getElementById('search-input').value = '';
+          location.reload();
+        }
+      });
     }
 
     document.getElementById('search-input').addEventListener('keydown', function(e) {
