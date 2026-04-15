@@ -10,7 +10,7 @@ import sqlite3
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
-
+from config import BOOKS_CSV_PATH, DB_PATH
 import pandas as pd
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
