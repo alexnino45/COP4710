@@ -166,4 +166,3 @@ stalled = cur.execute("""
 print(f"  Pace tracker flags: {dict(stalled)['count']} stalled books")
 
 conn.close()
-print("\n✅ Demo data setup complete. Refresh your dashboard to see the changes.")
