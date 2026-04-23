@@ -1,0 +1,8 @@
+Flask==3.1.0
+pandas==2.2.3
+
+1 - Install python from python.org/downloads
+2 - Install flask in vscode terminal using: python -m pip install flask pandas
+3 - cd to database folder and run Backend.py from it in terminal: python Backend.py
+4 - open browser and go to http://127.0.0.1:5000
+5 - ctrl + c in terminal to stop running when done

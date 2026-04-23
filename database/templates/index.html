@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PageTurner — Your Reading List</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream:   #f5f0e8;
+      --ink:     #1a1208;
+      --brown:   #6b4226;
+      --gold:    #c8993a;
+      --rust:    #b85c38;
+      --sage:    #7a9e7e;
+      --light:   #ece6d9;
+      --shadow:  rgba(26,18,8,0.12);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 3rem;
+      background: rgba(245,240,232,0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(107,66,38,0.12);
+    }
+    .nav-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-style: italic;
+      color: var(--brown);
+      text-decoration: none;
+      letter-spacing: -0.02em;
+    }
+    .nav-links { display: flex; gap: 2.4rem; align-items: center; }
+    .nav-links a {
+      text-decoration: none;
+      color: var(--ink);
+      font-size: 0.875rem;
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    .nav-links a:hover { opacity: 1; }
+    .btn-nav {
+      background: var(--brown);
+      color: var(--cream) !important;
+      opacity: 1 !important;
+      padding: 0.5rem 1.4rem;
+      border-radius: 2px;
+      transition: background 0.2s !important;
+    }
+    .btn-nav:hover { background: var(--rust) !important; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding-top: 80px;
+    }
+    .hero-left {
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 6rem 3rem 6rem 5rem;
+    }
+    .hero-eyebrow {
+      font-size: 0.75rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--rust);
+      font-weight: 500;
+      margin-bottom: 1.5rem;
+      animation: fadeUp 0.8s ease both;
+    }
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(3rem, 5vw, 5.5rem);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      color: var(--ink);
+      margin-bottom: 1.8rem;
+      animation: fadeUp 0.8s 0.1s ease both;
+    }
+    .hero-title em { color: var(--brown); font-style: italic; }
+    .hero-sub {
+      max-width: 420px;
+      font-size: 1.05rem;
+      line-height: 1.75;
+      color: rgba(26,18,8,0.65);
+      margin-bottom: 2.5rem;
+      animation: fadeUp 0.8s 0.2s ease both;
+    }
+    .hero-actions {
+      display: flex; gap: 1rem; flex-wrap: wrap;
+      animation: fadeUp 0.8s 0.3s ease both;
+    }
+    .btn-primary {
+      background: var(--brown);
+      color: var(--cream);
+      padding: 0.9rem 2.2rem;
+      border: none; border-radius: 2px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s;
+      display: inline-block;
+    }
+    .btn-primary:hover { background: var(--rust); transform: translateY(-1px); }
+    .btn-outline {
+      background: transparent;
+      color: var(--brown);
+      padding: 0.9rem 2.2rem;
+      border: 1.5px solid var(--brown);
+      border-radius: 2px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.2s, color 0.2s;
+      display: inline-block;
+    }
+    .btn-outline:hover { background: var(--brown); color: var(--cream); }
+
+    /* hero right – decorative book stack */
+    .hero-right {
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+      overflow: hidden;
+      background: var(--light);
+      animation: fadeIn 1s 0.2s ease both;
+    }
+    .book-stack {
+      position: relative; width: 280px; height: 360px;
+      animation: float 5s ease-in-out infinite;
+    }
+    .book {
+      position: absolute;
+      border-radius: 3px 8px 8px 3px;
+      box-shadow: 4px 6px 20px var(--shadow);
+    }
+    .book-1 { width: 180px; height: 240px; background: var(--brown); bottom: 0; left: 50px; transform: rotate(-6deg); }
+    .book-2 { width: 200px; height: 260px; background: var(--rust); bottom: 20px; left: 30px; transform: rotate(2deg); }
+    .book-3 { width: 160px; height: 220px; background: var(--sage); bottom: 40px; left: 70px; transform: rotate(-2deg); }
+    .book-4 { width: 175px; height: 235px; background: var(--gold); bottom: 60px; left: 45px; transform: rotate(5deg); }
+    .book-spine { position: absolute; left: 0; top: 0; bottom: 0; width: 22px; background: rgba(0,0,0,0.18); border-radius: 3px 0 0 3px; }
+    .book-lines { position: absolute; right: 16px; top: 24px; bottom: 24px; display: flex; flex-direction: column; gap: 10px; opacity: 0.25; }
+    .book-line { height: 2px; background: white; border-radius: 1px; }
+    .book-line:nth-child(1) { width: 80px; }
+    .book-line:nth-child(2) { width: 55px; }
+    .book-line:nth-child(3) { width: 70px; }
+    .book-line:nth-child(4) { width: 45px; }
+
+    .hero-deco-text {
+      position: absolute; bottom: 3rem; right: 3rem;
+      font-family: 'Playfair Display', serif;
+      font-size: 8rem;
+      font-style: italic;
+      color: var(--brown);
+      opacity: 0.06;
+      line-height: 1;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    /* ── STATS STRIP ── */
+    .stats-strip {
+      background: var(--ink);
+      color: var(--cream);
+      padding: 2rem 5rem;
+      display: flex; gap: 0; overflow: hidden;
+    }
+    .stat-item {
+      flex: 1; text-align: center;
+      padding: 1rem 0;
+      border-right: 1px solid rgba(245,240,232,0.1);
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.8rem;
+      color: var(--gold);
+      display: block; line-height: 1;
+    }
+    .stat-label { font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.55; margin-top: 0.4rem; display: block; }
+
+    /* ── FEATURES ── */
+    .features { padding: 7rem 5rem; }
+    .section-header { text-align: center; margin-bottom: 5rem; }
+    .section-eyebrow {
+      font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--rust); font-weight: 500; margin-bottom: 1rem; display: block;
+    }
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 3.5vw, 3.2rem);
+      line-height: 1.15; letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2.5rem;
+    }
+    .feature-card {
+      padding: 2.5rem;
+      background: var(--light);
+      border-radius: 4px;
+      border-left: 3px solid transparent;
+      transition: border-color 0.3s, transform 0.2s, box-shadow 0.3s;
+      position: relative; overflow: hidden;
+    }
+    .feature-card:hover {
+      border-left-color: var(--brown);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px var(--shadow);
+    }
+    .feature-icon {
+      font-size: 1.8rem; margin-bottom: 1.2rem; display: block;
+    }
+    .feature-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem; font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: var(--ink);
+    }
+    .feature-desc { font-size: 0.9rem; line-height: 1.7; color: rgba(26,18,8,0.62); }
+
+    /* ── STATUS SECTION ── */
+    .status-section {
+      padding: 6rem 5rem;
+      background: var(--ink);
+      color: var(--cream);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: center;
+    }
+    .status-section .section-eyebrow { color: var(--gold); }
+    .status-section .section-title { color: var(--cream); }
+    .status-section .section-title em { color: var(--gold); font-style: italic; }
+    .status-desc {
+      margin-top: 1.5rem;
+      font-size: 0.95rem;
+      line-height: 1.8;
+      opacity: 0.65;
+    }
+    .status-badges {
+      display: flex; flex-direction: column; gap: 1.2rem;
+    }
+    .badge {
+      display: flex; align-items: center; gap: 1.2rem;
+      padding: 1.2rem 1.5rem;
+      border-radius: 4px;
+      background: rgba(245,240,232,0.06);
+      border: 1px solid rgba(245,240,232,0.1);
+      transition: background 0.2s;
+    }
+    .badge:hover { background: rgba(245,240,232,0.1); }
+    .badge-dot {
+      width: 12px; height: 12px;
+      border-radius: 50%; flex-shrink: 0;
+    }
+    .badge-label { font-size: 0.95rem; font-weight: 500; }
+    .badge-desc { font-size: 0.8rem; opacity: 0.5; margin-top: 0.15rem; }
+    .badge-dot.want   { background: var(--gold); }
+    .badge-dot.reading{ background: var(--sage); }
+    .badge-dot.done   { background: var(--rust); }
+
+    /* ── CTA ── */
+    .cta-section {
+      padding: 7rem 5rem;
+      text-align: center;
+      background: var(--cream);
+    }
+    .cta-section .section-title { margin-bottom: 1.5rem; }
+    .cta-sub {
+      font-size: 1rem; line-height: 1.75;
+      color: rgba(26,18,8,0.6);
+      max-width: 500px; margin: 0 auto 2.5rem;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--ink);
+      color: var(--cream);
+      padding: 3rem 5rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .footer-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem; font-style: italic;
+      color: var(--gold);
+    }
+    .footer-note { font-size: 0.78rem; opacity: 0.4; letter-spacing: 0.05em; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(22px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; } to { opacity: 1; }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-12px); }
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      nav { padding: 1rem 1.5rem; }
+      .hero { grid-template-columns: 1fr; min-height: auto; }
+      .hero-left { padding: 7rem 2rem 3rem; }
+      .hero-right { display: none; }
+      .stats-strip { padding: 2rem 1.5rem; }
+      .features, .cta-section { padding: 5rem 2rem; }
+      .features-grid { grid-template-columns: 1fr; }
+      .status-section { grid-template-columns: 1fr; padding: 4rem 2rem; }
+      footer { flex-direction: column; gap: 1rem; text-align: center; padding: 2rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="/" class="nav-logo">PageTurner</a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#about">About</a>
+      <a href="/login-page" class="btn-nav">Log In</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-left">
+      <span class="hero-eyebrow">Your Personal Reading Companion</span>
+      <h1 class="hero-title">Track every<br/><em>book</em> you<br/>ever read.</h1>
+      <p class="hero-sub">PageTurner keeps your reading life organized — search thousands of books, build your personal list, and uncover insights about your reading habits.</p>
+      <div class="hero-actions">
+        <a href="/login-page" class="btn-primary">Get Started</a>
+        <a href="#features" class="btn-outline">Learn More</a>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="book-stack">
+        <div class="book book-1">
+          <div class="book-spine"></div>
+          <div class="book-lines"><div class="book-line"></div><div class="book-line"></div><div class="book-line"></div><div class="book-line"></div></div>
+        </div>
+        <div class="book book-2">
+          <div class="book-spine"></div>
+          <div class="book-lines"><div class="book-line"></div><div class="book-line"></div><div class="book-line"></div><div class="book-line"></div></div>
+        </div>
+        <div class="book book-3">
+          <div class="book-spine"></div>
+          <div class="book-lines"><div class="book-line"></div><div class="book-line"></div><div class="book-line"></div><div class="book-line"></div></div>
+        </div>
+        <div class="book book-4">
+          <div class="book-spine"></div>
+          <div class="book-lines"><div class="book-line"></div><div class="book-line"></div><div class="book-line"></div><div class="book-line"></div></div>
+        </div>
+      </div>
+      <div class="hero-deco-text">Read.</div>
+    </div>
+  </section>
+
+  <!-- STATS STRIP -->
+  <div class="stats-strip">
+    <div class="stat-item">
+      <span class="stat-number">10k+</span>
+      <span class="stat-label">Books in Database</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number">3</span>
+      <span class="stat-label">Reading Statuses</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number">∞</span>
+      <span class="stat-label">Lists to Build</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number">100%</span>
+      <span class="stat-label">Your Data, Your Pace</span>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <section class="features" id="features">
+    <div class="section-header">
+      <span class="section-eyebrow">What You Can Do</span>
+      <h2 class="section-title">Everything a reader needs,<br/>nothing they don't.</h2>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon">🔍</span>
+        <div class="feature-title">Search Books</div>
+        <p class="feature-desc">Find books instantly by title, author, or genre from our database of thousands of titles sourced from real reading data.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📚</span>
+        <div class="feature-title">Build Your List</div>
+        <p class="feature-desc">Add books to your personal reading list and manage them with full control — add, update, or remove at any time.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📊</span>
+        <div class="feature-title">Reading Statistics</div>
+        <p class="feature-desc">Track your reading pace, total books read by genre, average completion time, and more — all generated from your personal data.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">⏱️</span>
+        <div class="feature-title">Pace Tracking</div>
+        <p class="feature-desc">Our unique pace tracker flags books that have sat in "Currently Reading" for too long — so you can make informed decisions about what to finish.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔄</span>
+        <div class="feature-title">Status Updates</div>
+        <p class="feature-desc">Move books from Want to Read → Currently Reading → Finished with a single click, keeping your list always up to date.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🎯</span>
+        <div class="feature-title">Solo Focused</div>
+        <p class="feature-desc">Unlike Goodreads, PageTurner is all about you. No social feeds, no noise — just your reading life, clearly organized.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATUS SECTION -->
+  <section class="status-section" id="about">
+    <div>
+      <span class="section-eyebrow">Track Your Progress</span>
+      <h2 class="section-title">Three statuses,<br/><em>infinite</em> clarity.</h2>
+      <p class="status-desc">Every book in your list carries a status. Flip it as your reading journey evolves — PageTurner keeps a full history of start and end dates so your stats are always accurate.</p>
+    </div>
+    <div class="status-badges">
+      <div class="badge">
+        <div class="badge-dot want"></div>
+        <div>
+          <div class="badge-label">Want to Read</div>
+          <div class="badge-desc">Books on your radar, queued up and waiting</div>
+        </div>
+      </div>
+      <div class="badge">
+        <div class="badge-dot reading"></div>
+        <div>
+          <div class="badge-label">Currently Reading</div>
+          <div class="badge-desc">In progress — pace tracking begins here</div>
+        </div>
+      </div>
+      <div class="badge">
+        <div class="badge-dot done"></div>
+        <div>
+          <div class="badge-label">Finished</div>
+          <div class="badge-desc">Completed reads that fuel your statistics</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <span class="section-eyebrow">Ready to Start?</span>
+    <h2 class="section-title">Your reading list<br/>awaits.</h2>
+    <p class="cta-sub">Create your account in seconds and start building the reading list you've always wanted.</p>
+    <a href="/login-page" class="btn-primary">Create Free Account</a>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">PageTurner</div>
+    <div class="footer-note">COP 4710 Term Project &mdash; Koeller, Rodriguez, Nino, Caruso</div>
+  </footer>
+
+</body>
+</html>

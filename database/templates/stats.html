@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PageTurner — My Stats</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream:  #f5f0e8;
+      --ink:    #1a1208;
+      --brown:  #6b4226;
+      --gold:   #c8993a;
+      --rust:   #b85c38;
+      --sage:   #7a9e7e;
+      --light:  #ece6d9;
+      --shadow: rgba(26,18,8,0.10);
+    }
+
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 3rem;
+      background: rgba(245,240,232,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(107,66,38,0.12);
+    }
+    .nav-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem; font-style: italic;
+      color: var(--brown); text-decoration: none;
+    }
+    .nav-links { display: flex; gap: 1.5rem; align-items: center; }
+    .nav-links a {
+      text-decoration: none; color: var(--ink);
+      font-size: 0.875rem; font-weight: 400;
+      letter-spacing: 0.04em; text-transform: uppercase;
+      opacity: 0.6; transition: opacity 0.2s;
+    }
+    .nav-links a:hover { opacity: 1; }
+    .nav-user {
+      display: flex; align-items: center; gap: 0.75rem;
+      font-size: 0.875rem; font-weight: 500; opacity: 1 !important;
+    }
+    .nav-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--brown); color: var(--cream);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 500;
+      font-family: 'Playfair Display', serif;
+    }
+    .btn-logout {
+      background: transparent;
+      border: 1.5px solid rgba(107,66,38,0.3);
+      color: var(--brown); padding: 0.4rem 1rem;
+      border-radius: 2px; font-family: 'DM Sans', sans-serif;
+      font-size: 0.78rem; font-weight: 500;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      cursor: pointer; text-decoration: none;
+      transition: background 0.2s, color 0.2s;
+    }
+    .btn-logout:hover { background: var(--brown); color: var(--cream); }
+
+    /* ── PAGE LAYOUT ── */
+    .page-wrapper {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 100px 3rem 4rem;
+    }
+
+    /* ── PAGE TITLE ── */
+    .page-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem; font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(107,66,38,0.12);
+      animation: fadeUp 0.6s ease both;
+    }
+
+    /* ── STATS ROW ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.2rem;
+      margin-bottom: 2rem;
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+    .stat-card {
+      background: var(--light);
+      border-radius: 4px;
+      padding: 1.5rem;
+      border-left: 3px solid transparent;
+      transition: transform 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-2px); }
+    .stat-card.gold  { border-left-color: var(--gold); }
+    .stat-card.sage  { border-left-color: var(--sage); }
+    .stat-card.rust  { border-left-color: var(--rust); }
+    .stat-card.brown { border-left-color: var(--brown); }
+    .stat-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.4rem; line-height: 1;
+      color: var(--ink); display: block; margin-bottom: 0.4rem;
+    }
+    .stat-label {
+      font-size: 0.75rem; letter-spacing: 0.1em;
+      text-transform: uppercase; color: rgba(26,18,8,0.5);
+    }
+
+    /* ── SECTION CARDS ── */
+    .section-card {
+      background: var(--light);
+      border-radius: 4px;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      animation: fadeUp 0.6s 0.2s ease both;
+    }
+    .card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem; font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ── GENRE LIST ── */
+    .genre-list { display: flex; flex-direction: column; gap: 1rem; }
+    .genre-row { display: flex; flex-direction: column; gap: 0.3rem; }
+    .genre-meta { display: flex; justify-content: space-between; font-size: 0.85rem; }
+    .genre-name { font-weight: 500; }
+    .genre-count { color: rgba(26,18,8,0.45); }
+    .genre-bar-bg {
+      height: 6px; background: rgba(107,66,38,0.12);
+      border-radius: 999px; overflow: hidden;
+    }
+    .genre-bar {
+      height: 100%; background: var(--brown);
+      border-radius: 999px;
+      transition: width 1s ease;
+    }
+
+    /* ── PACE TRACKER ── */
+    .pace-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .pace-item {
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(184,92,56,0.08);
+      border: 1px solid rgba(184,92,56,0.2);
+      border-radius: 4px; padding: 1rem 1.2rem;
+    }
+    .pace-info { flex: 1; }
+    .pace-title { font-weight: 500; font-size: 0.95rem; margin-bottom: 0.2rem; }
+    .pace-author { font-size: 0.8rem; color: rgba(26,18,8,0.5); }
+    .pace-days {
+      font-size: 0.82rem; font-weight: 500;
+      color: var(--rust); white-space: nowrap;
+      margin-left: 1rem;
+    }
+
+    .empty-state {
+      text-align: center; padding: 2rem 1rem;
+      color: rgba(26,18,8,0.35); font-size: 0.9rem;
+    }
+    .empty-state span { display: block; font-size: 2rem; margin-bottom: 0.75rem; }
+
+    /* ── AVG BY GENRE ── */
+    .avg-genre-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .avg-genre-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.75rem 1rem;
+      background: rgba(245,240,232,0.6);
+      border-radius: 2px;
+      font-size: 0.875rem;
+    }
+    .avg-genre-name { font-weight: 500; }
+    .avg-genre-days { color: var(--brown); font-weight: 500; }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 960px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      nav { padding: 1rem 1.5rem; }
+      .page-wrapper { padding: 90px 1.5rem 3rem; }
+    }
+    @media (max-width: 500px) {
+      .stats-row { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="/dashboard" class="nav-logo">PageTurner</a>
+    <div class="nav-links">
+      <a href="/profile">Profile</a>
+      <a href="/dashboard">Reading List</a>
+      <div class="nav-user">
+        <div class="nav-avatar">{{ user.Name[0] }}</div>
+        <span>{{ user.Name }}</span>
+      </div>
+      <a href="/logout" class="btn-logout">Log Out</a>
+    </div>
+  </nav>
+
+  <div class="page-wrapper">
+    <h1 class="page-title">My Reading Stats</h1>
+
+    <!-- READING SUMMARY -->
+    <div class="stats-row">
+      <div class="stat-card gold">
+        <span class="stat-number">{{ stats.want_to_read }}</span>
+        <span class="stat-label">Want to Read</span>
+      </div>
+      <div class="stat-card sage">
+        <span class="stat-number">{{ stats.currently_reading }}</span>
+        <span class="stat-label">Currently Reading</span>
+      </div>
+      <div class="stat-card rust">
+        <span class="stat-number">{{ stats.finished }}</span>
+        <span class="stat-label">Finished</span>
+      </div>
+      <div class="stat-card brown">
+        <span class="stat-number">{{ stats.avg_days }}</span>
+        <span class="stat-label">Avg Days / Book</span>
+      </div>
+    </div>
+
+    <!-- GENRE BREAKDOWN -->
+    <div class="section-card">
+      <div class="card-title">Books by Genre</div>
+      {% if stats.genres %}
+      <div class="genre-list">
+        {% for genre in stats.genres %}
+        <div class="genre-row">
+          <div class="genre-meta">
+            <span class="genre-name">{{ genre.name }}</span>
+            <span class="genre-count">{{ genre.count }} books</span>
+          </div>
+          <div class="genre-bar-bg">
+            <div class="genre-bar" style="width: {{ genre.pct }}%"></div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <span>📚</span>
+        Add books to your list to see genre breakdown.
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- AVG DAYS BY GENRE -->
+    <div class="section-card">
+      <div class="card-title">Average Days to Finish by Genre</div>
+      {% if stats.avg_days_by_genre %}
+      <div class="avg-genre-list">
+        {% for genre in stats.avg_days_by_genre %}
+        <div class="avg-genre-row">
+          <span class="avg-genre-name">{{ genre.Genre }}</span>
+          <span class="avg-genre-days">{{ genre.avg_days }} days</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <span>⏱</span>
+        Finish some books to see your average reading time by genre.
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- PACE TRACKER -->
+    <div class="section-card">
+      <div class="card-title">⏱ Pace Tracker — Stalled Books</div>
+      {% if pace_alerts %}
+      <div class="pace-list">
+        {% for alert in pace_alerts %}
+        <div class="pace-item">
+          <div class="pace-info">
+            <div class="pace-title">{{ alert.title }}</div>
+            <div class="pace-author">{{ alert.author }}</div>
+          </div>
+          <span class="pace-days">{{ alert.days }} days in "Currently Reading"</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <span>✅</span>
+        No stalled books — you're on track!
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+</body>
+</html>
